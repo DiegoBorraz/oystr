@@ -1,6 +1,7 @@
 package com.br.oystr;
 
 import com.br.oystr.model.Machine;
+import com.br.oystr.service.GenerateJSON;
 import com.br.oystr.service.impl.BotImpl;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,9 +14,11 @@ import java.util.List;
 public class OystrApplication implements CommandLineRunner {
 
     private final BotImpl bot;
+    private final GenerateJSON generateJSON;
 
-    public OystrApplication(BotImpl bot) {
+    public OystrApplication(BotImpl bot, GenerateJSON generateJSON) {
         this.bot = bot;
+        this.generateJSON = generateJSON;
     }
 
     public static void main(String[] args) {
@@ -32,10 +35,23 @@ public class OystrApplication implements CommandLineRunner {
                 "https://www.mercadomaquinas.com.br/anuncio/225351-retro-escavadeira-caterpillar-416e-2014-londrina-pr",
                 "https://www.mercadomaquinas.com.br/anuncio/236623-mini-escavadeira-bobcat-e27z-2019-sete-lagoas-mg"
         };
+
         List<Machine> machineList = new ArrayList<>();
-        for (String url : urls) {
-            machineList.add(bot.fetch(url));
+
+        try {
+            for (String url : urls) {
+                System.out.println("Processando URL: " + url);
+                Machine machine = bot.fetch(url);
+                machineList.add(machine);
+                System.out.println("Máquina extraída: " + machine.getModel());
+            }
+
+            // Gerar arquivo JSON usando a classe de serviço
+            generateJSON.generateJsonFile(machineList);
+
+        } catch (Exception e) {
+            System.err.println("Erro durante a execução: " + e.getMessage());
+            e.printStackTrace();
         }
-        System.out.println("Extracted machine: " + machineList);
     }
 }
