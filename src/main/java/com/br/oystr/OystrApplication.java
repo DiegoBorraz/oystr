@@ -2,21 +2,20 @@ package com.br.oystr;
 
 import com.br.oystr.model.Machine;
 import com.br.oystr.service.GenerateJSON;
-import com.br.oystr.service.impl.BotImpl;
+import com.br.oystr.service.BotOrchestrator;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootApplication
 public class OystrApplication implements CommandLineRunner {
 
-    private final BotImpl bot;
+    private final BotOrchestrator bot;
     private final GenerateJSON generateJSON;
 
-    public OystrApplication(BotImpl bot, GenerateJSON generateJSON) {
+    public OystrApplication(BotOrchestrator bot, GenerateJSON generateJSON) {
         this.bot = bot;
         this.generateJSON = generateJSON;
     }
@@ -52,6 +51,8 @@ public class OystrApplication implements CommandLineRunner {
         } catch (Exception e) {
             System.err.println("Erro durante a execução: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            System.exit(0); // ← SIMPLES E EFETIVO
         }
     }
 }

@@ -9,42 +9,70 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class WebDriverConfig {
 
     @Bean
-    @Scope("prototype") // MUDANÇA CRÍTICA: scope prototype para cada injeção ser uma nova instância
+    @Scope("prototype")
     public WebDriver webDriver() {
-        // Configura automaticamente o ChromeDriver
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
 
-        // Configurações para melhor performance e stealth
+        // Configurações de Stealth Avançadas
         options.addArguments(
-                "--headless=new", // Modo headless moderno
+                "--headless=new",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu",
                 "--window-size=1920,1080",
                 "--disable-extensions",
                 "--disable-popup-blocking",
-                "--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                "--disable-blink-features=AutomationControlled",
+                "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         );
 
-        // Opções para evitar detecção como bot
-        options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+        // Opções experimentais para evitar detecção
+        Map<String, Object> prefs = new HashMap<>();
+        prefs.put("profile.default_content_setting_values.notifications", 2);
+        prefs.put("credentials_enable_service", false);
+        prefs.put("profile.password_manager_enabled", false);
+
+        options.setExperimentalOption("prefs", prefs);
+        options.setExperimentalOption("excludeSwitches", new String[]{
+                "enable-automation",
+                "enable-logging",
+                "load-extension"
+        });
         options.setExperimentalOption("useAutomationExtension", false);
 
         WebDriver driver = new ChromeDriver(options);
 
-        // Configurações de timeout
+        // Timeouts otimizados para web scraping
         driver.manage().timeouts()
-                .implicitlyWait(Duration.ofSeconds(10))
-                .pageLoadTimeout(Duration.ofSeconds(30))
-                .scriptTimeout(Duration.ofSeconds(10));
+                .implicitlyWait(Duration.ofSeconds(15))
+                .pageLoadTimeout(Duration.ofSeconds(45))
+                .scriptTimeout(Duration.ofSeconds(20));
 
         return driver;
+    }
+
+    // 🔥 NOVO: Bean alternativo para debugging (não headless)
+    @Bean
+    @Scope("prototype")
+    public WebDriver webDriverVisual() {
+        WebDriverManager.chromedriver().setup();
+
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments(
+                "--start-maximized",
+                "--disable-extensions",
+                "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        );
+
+        return new ChromeDriver(options);
     }
 }

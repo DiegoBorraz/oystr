@@ -2,7 +2,6 @@ package com.br.oystr.service.impl;
 
 import com.br.oystr.model.Machine;
 import com.br.oystr.service.BaseBot;
-import com.br.oystr.service.SiteSpecificBot;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

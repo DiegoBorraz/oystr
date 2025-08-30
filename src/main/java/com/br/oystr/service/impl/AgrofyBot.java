@@ -3,7 +3,6 @@ package com.br.oystr.service.impl;
 
 import com.br.oystr.model.Machine;
 import com.br.oystr.service.BaseBot;
-import com.br.oystr.service.SiteSpecificBot;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -11,11 +10,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 
 @Slf4j
 @Component

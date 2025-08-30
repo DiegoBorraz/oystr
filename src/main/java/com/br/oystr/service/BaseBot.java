@@ -1,7 +1,5 @@
 package com.br.oystr.service;
 
-import com.br.oystr.model.Machine;
-import com.br.oystr.service.SiteSpecificBot;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -23,7 +21,7 @@ public abstract class BaseBot implements SiteSpecificBot {
         return new WebDriverWait(webDriver, TIMEOUT);
     }
 
-    // Métodos comuns podem ser implementados aqui
+
     protected void navigateToUrl(String url) {
         webDriver.get(url);
         log.info("Página carregada: {}", webDriver.getTitle());
