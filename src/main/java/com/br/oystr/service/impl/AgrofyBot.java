@@ -2,6 +2,7 @@ package com.br.oystr.service.impl;
 
 
 import com.br.oystr.model.Machine;
+import com.br.oystr.service.BaseBot;
 import com.br.oystr.service.SiteSpecificBot;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -18,45 +19,37 @@ import java.time.Duration;
 
 @Slf4j
 @Component
-public class AgrofyBot implements SiteSpecificBot {
-    private final WebDriver webDriver;
-
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private static final Duration POLLING_INTERVAL = Duration.ofMillis(500);
+public class AgrofyBot extends BaseBot {
+    private static final String MACHINE_CONTAINER = "ul[data-test=contentTable-list]";
 
     @Autowired
     public AgrofyBot(WebDriver webDriver) {
-        this.webDriver = webDriver;
+        super(webDriver);
     }
+
 
     @Override
     public Machine fetch(String url) {
         log.info("Acessando página da Agrofy: {}", url);
         Machine machine = new Machine();
-        WebDriver driver = this.webDriver;
 
         try {
-            // 1. Acessar a URL
-            driver.get(url);
-            log.info("Página carregada: {}", driver.getTitle());
-            // 2. Aguardar o carregamento dos elementos
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-            wait.pollingEvery(POLLING_INTERVAL);
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("ul[data-test=contentTable-list]")));
-            // 3. ACESSAR DIRETAMENTE O LINK DO PRIMEIRO RESULTADO
-            WebElement dataDiv = driver.findElement( By.cssSelector("ul[data-test=contentTable-list]"));
+            navigateToUrl(url);
+            createWait().until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(MACHINE_CONTAINER)));
+
+            WebElement dataDiv = webDriver.findElement(By.cssSelector(MACHINE_CONTAINER));
             String htmlContent = dataDiv.getAttribute("outerHTML");
+
             machine = extractDetailElement(htmlContent);
-            machine.setPrice(extractPrice(driver));
-            machine.setWorkingHours(extractWorkHours(driver));
-            machine.setImageUrl(extractImage(driver));
+            machine.setPrice(extractPrice());
+            machine.setWorkingHours(extractWorkHours());
+            machine.setImageUrl(extractImage());
             machine.setUrl(url);
-            return machine;
 
         } catch (Exception e) {
             log.error("Erro ao processar página: {}", url, e);
-            return machine;
         }
+        return machine;
     }
 
     @Override
@@ -71,7 +64,7 @@ public class AgrofyBot implements SiteSpecificBot {
         try {
             // Parsear o HTML com JSoup
             Document doc = Jsoup.parse(htmlContent);
-            Element ulElement = doc.select("ul[data-test=contentTable-list]").first();
+            Element ulElement = doc.select(MACHINE_CONTAINER).first();
 
             if (ulElement != null) {
                 Elements liElements = ulElement.select("li.sc-knuQbY.hKUCOd");
@@ -91,10 +84,10 @@ public class AgrofyBot implements SiteSpecificBot {
         return machine;
     }
 
-    private String extractWorkHours(WebDriver driver){
+    private String extractWorkHours(){
         String workingHours = "";
         try{
-            WebElement workingHoursElement = driver.findElement(By.cssSelector("div#Descrição"));
+            WebElement workingHoursElement = webDriver.findElement(By.cssSelector("div#Descrição"));
             String workingHoursHtml = workingHoursElement.getAttribute("outerHTML");
 
             // Parsear o HTML com JSoup
@@ -115,11 +108,11 @@ public class AgrofyBot implements SiteSpecificBot {
         return workingHours;
     }
 
-    private String extractPrice(WebDriver driver) {
+    private String extractPrice() {
         String price = null;
         try {
             // Primeiro encontrar a div pai
-            WebElement priceContainer = driver.findElement(
+            WebElement priceContainer = webDriver.findElement(
                     By.cssSelector("div.sc-fPXMVe.bdNJjR"));
 
             // Dentro da div pai, encontrar o span do preço
@@ -135,11 +128,11 @@ public class AgrofyBot implements SiteSpecificBot {
         return price;
     }
 
-    private String extractImage(WebDriver driver) {
+    private String extractImage() {
         String img = "";
         try {
             // Tentar encontrar a imagem usando múltiplos seletores
-            WebElement imageElement = driver.findElement(
+            WebElement imageElement = webDriver.findElement(
                     By.cssSelector("div.sc-dAlyuH.qAvVH img, div.slide img, img[fetchpriority=high]"));
 
             String imageUrl = imageElement.getAttribute("src");
