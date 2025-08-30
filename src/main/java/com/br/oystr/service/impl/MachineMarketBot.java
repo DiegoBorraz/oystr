@@ -1,6 +1,7 @@
 package com.br.oystr.service.impl;
 
 import com.br.oystr.model.Machine;
+import com.br.oystr.service.BaseBot;
 import com.br.oystr.service.SiteSpecificBot;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -20,18 +21,13 @@ import java.time.Duration;
 
 @Slf4j
 @Component
-public class MachineMarketBot implements SiteSpecificBot {
-    private final WebDriver webDriver;
-
-
-
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private static final Duration POLLING_INTERVAL = Duration.ofMillis(500);
+public class MachineMarketBot extends BaseBot {
 
     @Autowired
     public MachineMarketBot(WebDriver webDriver) {
-        this.webDriver = webDriver;
+        super(webDriver);
     }
+
     @Override
     public Machine fetch(String url) {
         log.info("Acessando página da Agrofy: {}", url);

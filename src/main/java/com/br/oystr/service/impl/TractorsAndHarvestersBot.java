@@ -1,6 +1,7 @@
 package com.br.oystr.service.impl;
 
 import com.br.oystr.model.Machine;
+import com.br.oystr.service.BaseBot;
 import com.br.oystr.service.SiteSpecificBot;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -20,19 +21,16 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class TractorsAndHarvestersBot implements SiteSpecificBot {
-    private final WebDriver webDriver;
+public class TractorsAndHarvestersBot extends BaseBot {
 
     // Seletores CSS simplificados
     private static final String MACHINE_CONTAINER = "div.product-description.rte";
     private static final String ALL_COLUMNS = "div.col-lg-4.col-md-4.col-sm-12.col-12";
 
-    private static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private static final Duration POLLING_INTERVAL = Duration.ofMillis(500);
 
     @Autowired
-    public TractorsAndHarvestersBot(WebDriver webDriver) {
-        this.webDriver = webDriver;
+    public TractorsAndHarvestersBot(WebDriver webDriver)  {
+        super(webDriver);
     }
 
     @Override
@@ -41,23 +39,15 @@ public class TractorsAndHarvestersBot implements SiteSpecificBot {
         Machine machine = new Machine();
 
         try {
-            // 1. Acessar a URL
-            webDriver.get(url);
-            log.info("Página carregada: {}", webDriver.getTitle());
+            navigateToUrl(url);
+            createWait().until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(MACHINE_CONTAINER)));
 
-            // 2. Aguardar o carregamento dos elementos
-            WebDriverWait wait = new WebDriverWait(webDriver, TIMEOUT);
-            wait.pollingEvery(POLLING_INTERVAL);
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(MACHINE_CONTAINER)));
-
-            // 4. Encontrar a seção de detalhes manualmente
             WebElement detailsSection = findDetailsSection();
             if (detailsSection != null) {
                 String htmlContent = detailsSection.getAttribute("outerHTML");
                 machine = extractDetailElement(htmlContent);
             }
 
-            // 5. Extrair outros dados
             machine.setCity(extractLocation());
             machine.setImageUrl(extractImageUrl());
             machine.setUrl(url);
@@ -65,7 +55,6 @@ public class TractorsAndHarvestersBot implements SiteSpecificBot {
         } catch (Exception e) {
             log.error("Erro ao processar página: {}", url, e);
         }
-
         return machine;
     }
 
